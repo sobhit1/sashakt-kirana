@@ -53,18 +53,6 @@ const userSchema = new mongoose.Schema({
   location: {
     type: String,
   },
-  totalBillsMade: {
-    type: Number,
-    default: 0,
-  },
-  earnedToday: {
-    type: Number,
-    default: 0,
-  },
-  totalAmountLoaned: {
-    type: Number,
-    default: 0,
-  },
   loginAttempt: {
     otp: {
       type: Number,
