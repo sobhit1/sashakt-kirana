@@ -19,7 +19,6 @@ export const createUser = async (req, res) => {
       timeStamp:Date.now()
     }
     const savedUser = await newUser.save();
-    // const data=
     sendResponse(true, 'User created successfully', savedUser, res);
   }
   catch (error) {
@@ -52,7 +51,6 @@ export const otpVerify=async(req,res)=>{
     const user=await User.findOne({contactNumber:contactNumber});
     if((Date.now()-user.loginAttempt.timeStamp)/1000<180){
       const user_otp=user.loginAttempt.otp;
-      // const user_timeStamp=user.loginAttempt.timeStamp;
       if(user_otp!=otp){
         sendResponse(false,"Invalid otp",user,res);
       }

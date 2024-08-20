@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const billSchema = new mongoose.Schema({
   barCodeNumber: {
@@ -16,7 +16,7 @@ const billSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-});
+})
 
 const customerSchema = new mongoose.Schema({
   customerName: {
@@ -38,20 +38,22 @@ const customerSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
       },
+      location: {
+        type: String,
+        default: '',
+      },
     },
   ],
-});
+})
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
+    default: '',
   },
   contactNumber: {
     type: String,
     required: true,
-  },
-  location: {
-    type: String,
   },
   loginAttempt: {
     otp: {
@@ -62,8 +64,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   customers: [customerSchema],
-});
+})
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema)
 
-export default User;
+export default User
