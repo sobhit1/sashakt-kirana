@@ -1,4 +1,5 @@
 import User from '../models/user_schema.js'
+import Item from '../models/item_schema.js'
 
 function sendResponse(success, message, data, res) {
   res.status(200).send({
@@ -155,3 +156,36 @@ export const itemQuantity = async (req, res) => {
     sendResponse(false, 'Error encountered', error, res)
   }
 }
+export const addItemBarCode = async (req, res) => {
+  const { barCodeNumber, itemName, itemPrice } = req.body
+  try {
+    const itemData = await Item.findOne({ barCodeNumber: barCodeNumber })
+    if (itemData) {
+      sendResponse(false, 'Item already exists', itemData, res)
+    } else {
+      const item = new Item({
+        barCodeNumber: barCodeNumber,
+        itemName: itemName,
+        itemPrice: itemPrice,
+      })
+      await item.save()
+      sendResponse(true, 'Item added successfully', item, res)
+    }
+  } catch (error) {
+    sendResponse(false, 'Error encountered', error, res)
+  }
+}
+export const searchItem = async (req, res) => {
+  const { barCodeNumber } = req.body
+  try {
+    const itemData = await Item.findOne({ barCodeNumber: barCodeNumber })
+    if(itemData){
+      sendResponse(true, 'Item found successfully', itemData, res)
+    }
+    else{
+      sendResponse(false, 'Item not found', null, res)
+    }
+  } catch (error) {
+    sendResponse(false, 'Error encountered', error, res)
+  }
+} 
