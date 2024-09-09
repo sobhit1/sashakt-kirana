@@ -14,26 +14,32 @@ export const addItem = async (req, res) => {
   if (uid) {
     try {
       const UserData = await User.findOne({ _id: uid })
-      let custmr = UserData.customers.findIndex(
-        (cust) => cust.customerNumber === customer_number
-      )
-      console.log(custmr)
-      const customer = {
-        customerName: customer_name,
-        customerNumber: customer_number,
-        billArray: [
-          {
-            bill: item,
-            date: Date.now().toString(),
-            paid: paid,
-          },
-        ],
-      }
-      if (custmr === -1) {
-        UserData.customers.push(customer)
-      } else {
-        UserData.customers[custmr].billArray.push(customer.billArray[0])
-      }
+      // if (paid) {
+      //   const currentBill = {
+      //     bill: item,
+      //     date: Date.now().toString(),
+      //   }
+      //   UserData.paidBillsArray.push(currentBill)
+      // } else {
+        let custmr = UserData.customers.findIndex(
+          (cust) => cust.customerNumber === customer_number
+        )
+        const customer = {
+          customerName: customer_name,
+          customerNumber: customer_number,
+          billArray: [
+            {
+              bill: item,
+              date: Date.now().toString(),
+            },
+          ],
+        }
+        if (custmr === -1) {
+          UserData.customers.push(customer)
+        } else {
+          UserData.customers[custmr].billArray.push(customer.billArray[0])
+        }
+      // }
       await UserData.save()
       sendResponse(true, 'Item added successfully', UserData, res)
     } catch (error) {
@@ -179,13 +185,12 @@ export const searchItem = async (req, res) => {
   const { barCodeNumber } = req.body
   try {
     const itemData = await Item.findOne({ barCodeNumber: barCodeNumber })
-    if(itemData){
+    if (itemData) {
       sendResponse(true, 'Item found successfully', itemData, res)
-    }
-    else{
+    } else {
       sendResponse(false, 'Item not found', null, res)
     }
   } catch (error) {
     sendResponse(false, 'Error encountered', error, res)
   }
-} 
+}

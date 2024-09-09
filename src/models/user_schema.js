@@ -64,6 +64,15 @@ const userSchema = new mongoose.Schema({
     },
   },
   customers: [customerSchema],
+  // paidBillsArray: [
+  //   {
+  //     bill: [billSchema],
+  //     date: {
+  //       type: String,
+  //       required: true,
+  //     },
+  //   },
+  // ],
 })
 
 const User = mongoose.model('User', userSchema)
