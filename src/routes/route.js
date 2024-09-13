@@ -1,6 +1,6 @@
 import express from 'express'
 import { numberCheck ,otpVerify} from '../controllers/authCtrl.js';
-import { addItem, getCustomers, toggleAllPaid, getUserData, togglePaid, updateName, itemQuantity, addItemBarCode, searchItem } from '../controllers/control.js';
+import { addItem, getCustomers, toggleAllPaid, getUserData, togglePaid, updateName, inventorySoldItemQuantity, addNewItemFromBarCode, searchItemFromBarcode, deleteUser } from '../controllers/control.js';
 
 const router = express.Router() 
 
@@ -12,8 +12,8 @@ router.post('/toggleallpaid', toggleAllPaid);
 router.post('/getuserdata', getUserData);
 router.post('/togglepaid', togglePaid);
 router.post('/updatename', updateName);
-router.post('/itemquantity', itemQuantity);
-router.post('/additembarcode', addItemBarCode);
-router.post('/searchitem', searchItem);
-
+router.post('/inventorysolditemquantity', inventorySoldItemQuantity);
+router.post('/addnewitemfrombarcode', addNewItemFromBarCode);
+router.post('/searchitemfrombarcode', searchItemFromBarcode);
+router.post('/deleteuser', deleteUser);
 export default router

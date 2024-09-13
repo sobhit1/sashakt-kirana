@@ -9,6 +9,16 @@ function sendResponse(success, message, data, res) {
   })
   return
 }
+let itemDatabase
+async function loadData() {
+  try {
+    itemDatabase = await Item.find({})
+    console.log('Item Database Loaded', itemDatabase.length)
+  } catch (error) {
+    console.log(error)
+  }
+}
+loadData()
 export const addItem = async (req, res) => {
   const { uid, customer_name, customer_number, item, paid } = req.body
   if (uid) {
@@ -21,24 +31,24 @@ export const addItem = async (req, res) => {
       //   }
       //   UserData.paidBillsArray.push(currentBill)
       // } else {
-        let custmr = UserData.customers.findIndex(
-          (cust) => cust.customerNumber === customer_number
-        )
-        const customer = {
-          customerName: customer_name,
-          customerNumber: customer_number,
-          billArray: [
-            {
-              bill: item,
-              date: Date.now().toString(),
-            },
-          ],
-        }
-        if (custmr === -1) {
-          UserData.customers.push(customer)
-        } else {
-          UserData.customers[custmr].billArray.push(customer.billArray[0])
-        }
+      let custmr = UserData.customers.findIndex(
+        (cust) => cust.customerNumber === customer_number
+      )
+      const customer = {
+        customerName: customer_name,
+        customerNumber: customer_number,
+        billArray: [
+          {
+            bill: item,
+            date: Date.now().toString(),
+          },
+        ],
+      }
+      if (custmr === -1) {
+        UserData.customers.push(customer)
+      } else {
+        UserData.customers[custmr].billArray.push(customer.billArray[0])
+      }
       // }
       await UserData.save()
       sendResponse(true, 'Item added successfully', UserData, res)
@@ -139,7 +149,7 @@ export const updateName = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
-export const itemQuantity = async (req, res) => {
+export const inventorySoldItemQuantity = async (req, res) => {
   const { itemName } = req.body
   try {
     const itemData = await User.find({
@@ -162,7 +172,8 @@ export const itemQuantity = async (req, res) => {
     sendResponse(false, 'Error encountered', error, res)
   }
 }
-export const addItemBarCode = async (req, res) => {
+///////////////////////////////////////////////////////////////////////////////////////////
+export const addNewItemFromBarCode = async (req, res) => {
   const { barCodeNumber, itemName, itemPrice } = req.body
   try {
     const itemData = await Item.findOne({ barCodeNumber: barCodeNumber })
@@ -181,16 +192,36 @@ export const addItemBarCode = async (req, res) => {
     sendResponse(false, 'Error encountered', error, res)
   }
 }
-export const searchItem = async (req, res) => {
+//////////////////////////////////////////////////////////////////////////////////
+async function DataLoaded() {
+  if (!itemDatabase || itemDatabase.length === 0) {
+    await loadData()
+  }
+}
+export const searchItemFromBarcode = async (req, res) => {
   const { barCodeNumber } = req.body
   try {
-    const itemData = await Item.findOne({ barCodeNumber: barCodeNumber })
-    if (itemData) {
-      sendResponse(true, 'Item found successfully', itemData, res)
-    } else {
-      sendResponse(false, 'Item not found', null, res)
+    for (let i = 0; i < itemDatabase.length; i++) {
+      if (itemDatabase[i].EAN === barCodeNumber) {
+        sendResponse(true, 'Item found', itemDatabase[i], res)
+        return
+      }
     }
+    sendResponse(false, 'Item not found', null, res)
   } catch (error) {
     sendResponse(false, 'Error encountered', error, res)
+  }
+}
+export const deleteUser = async (req, res) => {
+  const { uid } = req.body
+  if (uid) {
+    try {
+      // const result = await User.deleteOne({ _id: uid })
+      sendResponse(true, 'User deleted successfully',[], res)
+    } catch (error) {
+      sendResponse(false, 'Error encountered', error, res)
+    }
+  } else {
+    sendResponse(false, 'User not loggedin', null, res)
   }
 }

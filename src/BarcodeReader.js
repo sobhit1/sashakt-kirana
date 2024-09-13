@@ -1,9 +1,9 @@
-const express = require("express");
-const cheerio = require("cheerio");
-const axios = require("axios");
-const NodeCache = require("node-cache");
-const app = express();
+import express from "express";
+import * as cheerio from "cheerio";
+import axios from "axios";
+import NodeCache from "node-cache";
 
+const app = express();
 const cache = new NodeCache({ stdTTL: 3600 }); // Cache valid for 1 hour
 
 async function scrapeprice(url) {

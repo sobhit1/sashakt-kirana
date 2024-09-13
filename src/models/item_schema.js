@@ -1,18 +1,10 @@
 import mongoose from 'mongoose'
 
 const itemSchema = new mongoose.Schema({
-  barCodeNumber: {
-    type: String,
-    required: true,
-  },
-  itemName: {
-    type: String,
-    required: true,
-  },
-  itemPrice: {
-    type: Number,
-    required: true,
-  }
+  Name: String,
+  MRP: Number,
+  EAN: Number,
+  productLink: String
 })
 
-export default mongoose.model('Item', itemSchema)
+export default mongoose.model('EANCODE_DB', itemSchema)

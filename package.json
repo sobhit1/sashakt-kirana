@@ -14,12 +14,19 @@
     "prettier": "^3.3.3"
   },
   "dependencies": {
+    "@playwright/test": "^1.47.0",
+    "axios": "^1.7.7",
     "body-parser": "^1.20.2",
     "bson": "^6.8.0",
+    "cheerio": "^1.0.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "mongoose": "^8.5.2"
+    "express": "^4.21.0",
+    "fs": "^0.0.1-security",
+    "mongoose": "^8.5.2",
+    "nightmare": "^2.0.9",
+    "node-cache": "^5.1.2",
+    "puppeteer": "^23.3.0"
   }
 }
