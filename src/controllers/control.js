@@ -41,6 +41,7 @@ export const addItem = async (req, res) => {
           {
             bill: item,
             date: Date.now().toString(),
+            paid: paid, 
           },
         ],
       }
