@@ -1,14 +1,18 @@
+// Import models
 import User from '../models/user_schema.js'
 import Item from '../models/item_schema.js'
 
-function sendResponse(success, message, data, res) {
-  res.status(200).send({
+// sendResponse function with status code flexibility
+function sendResponse(success, message, data, res, statusCode = 200) {
+  res.status(statusCode).send({
     success: success,
     message: message,
     data: data,
   })
   return
 }
+
+// Load item database
 let itemDatabase
 async function loadData() {
   try {
@@ -19,18 +23,13 @@ async function loadData() {
   }
 }
 loadData()
+
+// Add item to a customer's bill
 export const addItem = async (req, res) => {
-  const { uid, customer_name, customer_number, item, paid } = req.body
-  if (uid) {
+  const { sellerid, customer_name, customer_number, item, paid } = req.body
+  if (sellerid) {
     try {
-      const UserData = await User.findOne({ _id: uid })
-      // if (paid) {
-      //   const currentBill = {
-      //     bill: item,
-      //     date: Date.now().toString(),
-      //   }
-      //   UserData.paidBillsArray.push(currentBill)
-      // } else {
+      const UserData = await User.findOne({ _id: sellerid })
       let custmr = UserData.customers.findIndex(
         (cust) => cust.customerNumber === customer_number
       )
@@ -41,7 +40,7 @@ export const addItem = async (req, res) => {
           {
             bill: item,
             date: Date.now().toString(),
-            paid: paid, 
+            paid: paid,
           },
         ],
       }
@@ -50,7 +49,6 @@ export const addItem = async (req, res) => {
       } else {
         UserData.customers[custmr].billArray.push(customer.billArray[0])
       }
-      // }
       await UserData.save()
       sendResponse(true, 'Item added successfully', UserData, res)
     } catch (error) {
@@ -60,11 +58,13 @@ export const addItem = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
+
+// Get all customers of a seller
 export const getCustomers = async (req, res) => {
-  const { uid } = req.body
-  if (uid) {
+  const { sellerid } = req.body
+  if (sellerid) {
     try {
-      const UserData = await User.findOne({ _id: uid })
+      const UserData = await User.findOne({ _id: sellerid })
       let custData = []
       for (let i = 0; i < UserData.customers.length; i++) {
         custData.push({
@@ -80,16 +80,18 @@ export const getCustomers = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
+
+// Toggle 'paid' status for all bills
 export const toggleAllPaid = async (req, res) => {
-  const { uid } = req.body
-  if (uid) {
+  const { sellerid, custid } = req.body
+  if (sellerid) {
     try {
-      const UserData = await User.findOne({ _id: uid })
       await User.updateMany(
-        { 'customers.billArray.paid': false },
+        { _id: sellerid, 'customers.billArray.paid': false },
         { $set: { 'customers.$[].billArray.$[].paid': true } }
       )
-      sendResponse(true, 'Customers bills paid', UserData, res)
+      const UserData = await User.findOne({ _id: custid })
+      sendResponse(true, 'Customer bills paid', UserData, res)
     } catch (error) {
       sendResponse(false, 'Error encountered', error, res)
     }
@@ -97,11 +99,13 @@ export const toggleAllPaid = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
+
+// Fetch customer data
 export const getUserData = async (req, res) => {
-  const { uid } = req.body
-  if (uid) {
+  const { sellerid, custid } = req.body
+  if (sellerid) {
     try {
-      const UserData = await User.findOne({ _id: uid })
+      const UserData = await User.findOne({ _id: custid })
       sendResponse(true, 'User data fetched successfully', UserData, res)
     } catch (error) {
       sendResponse(false, 'Error encountered', error, res)
@@ -110,18 +114,20 @@ export const getUserData = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
+
+// Toggle 'paid' status for a specific bill
 export const togglePaid = async (req, res) => {
-  const { uid, sellerid } = req.body
+  const { sellerid, custid } = req.body
   if (sellerid) {
     try {
       const result = await User.updateOne(
-        { 'customers.billArray._id': uid },
+        { 'customers.billArray._id': custid },
         { $set: { 'customers.$[].billArray.$[billElem].paid': true } },
-        { arrayFilters: [{ 'billElem._id': uid }] }
+        { arrayFilters: [{ 'billElem._id': custid }] }
       )
       if (result.modifiedCount > 0) {
-        await UserData.save()
-        sendResponse(true, 'Toggled successfully', result, res)
+        const UserData = await User.findOne({ _id: sellerid })
+        sendResponse(true, 'Toggled successfully', UserData, res)
       } else {
         sendResponse(false, 'No bills to update', null, res)
       }
@@ -133,12 +139,13 @@ export const togglePaid = async (req, res) => {
   }
 }
 
+// Update user name
 export const updateName = async (req, res) => {
-  const { uid, name } = req.body
-  if (uid) {
+  const { sellerid, name } = req.body
+  if (sellerid) {
     try {
       const UserData = await User.updateOne(
-        { _id: uid },
+        { _id: sellerid },
         { $set: { name: name } }
       )
       sendResponse(true, 'Name updated successfully', UserData, res)
@@ -150,30 +157,43 @@ export const updateName = async (req, res) => {
     sendResponse(false, 'User not loggedin', null, res)
   }
 }
+
+// Fetch total quantity sold for a specific item of a seller
 export const inventorySoldItemQuantity = async (req, res) => {
-  const { itemName } = req.body
-  try {
-    const itemData = await User.find({
-      'customers.billArray.bill.itemName': itemName,
-    })
-    let totalQuantity = 0
-    itemData.forEach((bills) => {
-      bills.customers.forEach((customer) => {
-        customer.billArray.forEach((billData) => {
-          billData.bill.forEach((item) => {
-            if (item.itemName === itemName) {
-              totalQuantity += item.quantity
-            }
+  const { itemName, sellerid } = req.body
+  if (sellerid) {
+    try {
+      const itemData = await User.find({
+        _id: sellerid,
+        'customers.billArray.bill.itemName': itemName,
+      })
+      let totalQuantity = 0
+      itemData.forEach((bills) => {
+        bills.customers.forEach((customer) => {
+          customer.billArray.forEach((billData) => {
+            billData.bill.forEach((item) => {
+              if (item.itemName === itemName) {
+                totalQuantity += item.quantity
+              }
+            })
           })
         })
       })
-    })
-    sendResponse(true, 'Item quantity fetched successfully', totalQuantity, res)
-  } catch (error) {
-    sendResponse(false, 'Error encountered', error, res)
+      sendResponse(
+        true,
+        'Item quantity fetched successfully',
+        totalQuantity,
+        res
+      )
+    } catch (error) {
+      sendResponse(false, 'Error encountered', error, res)
+    }
+  } else {
+    sendResponse(false, 'User not loggedin', null, res)
   }
 }
-///////////////////////////////////////////////////////////////////////////////////////////
+
+// Add a new item from barcode
 export const addNewItemFromBarCode = async (req, res) => {
   const { barCodeNumber, itemName, itemPrice } = req.body
   try {
@@ -193,12 +213,8 @@ export const addNewItemFromBarCode = async (req, res) => {
     sendResponse(false, 'Error encountered', error, res)
   }
 }
-//////////////////////////////////////////////////////////////////////////////////
-async function DataLoaded() {
-  if (!itemDatabase || itemDatabase.length === 0) {
-    await loadData()
-  }
-}
+
+// Search for an item using barcode
 export const searchItemFromBarcode = async (req, res) => {
   const { barCodeNumber } = req.body
   try {
@@ -213,16 +229,21 @@ export const searchItemFromBarcode = async (req, res) => {
     sendResponse(false, 'Error encountered', error, res)
   }
 }
+
+// Delete a user
 export const deleteUser = async (req, res) => {
-  const { uid } = req.body
-  if (uid) {
-    try {
-      // const result = await User.deleteOne({ _id: uid })
-      sendResponse(true, 'User deleted successfully',[], res)
-    } catch (error) {
-      sendResponse(false, 'Error encountered', error, res)
+  const { sellerid } = req.body
+  if (!sellerid) {
+    return sendResponse(false, 'User not logged in', null, res, 400) // Bad Request
+  }
+  try {
+    const result = await User.deleteOne({ _id: sellerid })
+
+    if (result.deletedCount === 0) {
+      return sendResponse(false, 'User not found', null, res, 404) // Not Found
     }
-  } else {
-    sendResponse(false, 'User not loggedin', null, res)
+    sendResponse(true, 'User deleted successfully', result, res, 200) // OK
+  } catch (error) {
+    sendResponse(false, 'Error encountered', error, res, 500) // Internal Server Error
   }
 }
